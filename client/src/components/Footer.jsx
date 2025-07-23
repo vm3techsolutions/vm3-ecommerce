@@ -79,6 +79,7 @@ export default function Footer() {
               <FaEnvelope className="text-[#FEC63F]" />
               <Link href="mailto:info@vm3techsolution.com" className="text-sm text-gray-300">
                 info@vm3techsolution.com
+                     info@vm3techsolution.com
               </Link>
             </div>
           </div>
