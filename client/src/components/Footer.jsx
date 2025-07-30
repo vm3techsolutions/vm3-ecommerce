@@ -52,7 +52,7 @@ export default function Footer() {
               { label: "CRM", link: "/packages/crm" },
             //   { label: "SEO", link: "/pakages/seo" }
             ].map((item) => (
-              <li key={item.label} className="flex items-center space-x-2">
+               <li key={item.link} className="flex items-center space-x-2">
                 <span className="text-[#FEC63F]">➜</span>
                 <Link href={item.link} className="">
                   {item.label}
