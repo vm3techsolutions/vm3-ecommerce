@@ -27,10 +27,10 @@ export default function Footer() {
               { label: "Website Maintenance", link: "/packages/website-maintenance" },
               { label: "Social Media Marketing", link: "/packages/social-media-marketing" },
               { label: "Digital Marketing Ads", link: "/packages/digital-marketing-ads" },
-              { label: "Digital Marketing Ads", link: "/packages/digital-marketing-ads" },
+              { label: "Digital Marketing Ads", link: "/packages/" },
               { label: "SEO", link: "/packages/seo" }
             ].map((item) => (
-              <li key={item.label} className="flex items-center space-x-2">
+                <li key={item.link} className="flex items-center space-x-2">
                 <span className="text-yellow-400">➜</span>
                 <Link href={item.link} className="">
                   {item.label}

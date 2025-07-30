@@ -35,7 +35,7 @@ export default function Header() {
     },
     {
       title: 'Login',
-      path: '/',
+      path: '/login',
     },
   ];
 
