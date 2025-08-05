@@ -1,4 +1,5 @@
 'use client';
+import {FaUser} from "react-icons/fa";
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -91,10 +92,10 @@ export default function Header() {
 
         {/* Contact Info */}
         <div className="hidden md:flex flex-col items-start text-right mr-4 md:mr-20">
-          <span className="text-[#FEC63F] text-sm font-medium">Call Anytime</span>
-          <Link href="tel:+917877554499" className="text-white hover:text-yellow-400 text-sm">
+          <span className="text-[#FEC63F] text-4xl font-medium"><FaUser/></span>
+          {/* <Link href="tel:+917877554499" className="text-white hover:text-yellow-400 text-sm">
             +91 7877554499
-          </Link>
+          </Link> */}
         </div>
 
         {/* Mobile Toggle */}

@@ -1,22 +1,26 @@
+// server.js
 const express = require("express");
-const dotenv = require("dotenv");
 const cors = require("cors");
-const userRoutes = require("./Router/auth-router");
-const connectDB = require("./Config/db");
+const dotenv = require("dotenv");
+const { connectDB } = require("./Config/db");
+
+const authRoutes = require("./Router/auth-router");
+const planRoutes = require("./Router/plans");
 
 dotenv.config();
-const app = express();
+const app = express(); // ✅ Declare `app` before using it
 const PORT = process.env.PORT || 5000;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// DB Connection
 connectDB();
 
-// Routes
-app.use("/api/users", userRoutes);
+// ✅ Mount routes after `app` is initialized
 
-// Server Start
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.use("/api/auth", authRoutes);
+app.use("/api/plans", planRoutes);
+
+app.listen(PORT, () =>
+  console.log(`Server running on port ${PORT}`)
+);

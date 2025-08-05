@@ -1,15 +1,36 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import axios from "axios";
+import { useRouter } from "next/navigation";
 
 const SignUpForm = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",
     password: "",
     confirmPassword: "",
+    role_id: "",
   });
+
+  const [roles, setRoles] = useState([]);
+    const router = useRouter();
+
+  // Fetch roles from backend
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/auth/roles");
+        setRoles(response.data);
+      } catch (error) {
+        console.error("Failed to fetch roles:", error);
+      }
+    };
+
+    fetchRoles();
+  }, []);
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -19,7 +40,14 @@ const SignUpForm = () => {
   };
 
   const validateForm = () => {
-    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+    if (
+      !formData.name ||
+      !formData.email ||
+      !formData.phone ||
+      !formData.password ||
+      !formData.confirmPassword ||
+      !formData.role_id
+    ) {
       alert("All fields are required");
       return false;
     }
@@ -30,41 +58,48 @@ const SignUpForm = () => {
     return true;
   };
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (!validateForm()) return;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
 
-  try {
-    // 👉 Replace this with your actual API call
-    console.log("Form submitted:", formData);
+    try {
+      await axios.post("http://localhost:5000/api/auth/register", {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        role_id: formData.role_id,
+      });
 
-    // ✅ Clear form after successful signup
-    setFormData({
-      name: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-    });
+      alert("Signup successful!");
+router.push("/login");
 
-    alert("Signup successful!");
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        password: "",
+        confirmPassword: "",
+        role_id: "",
+      });
+    } catch (error) {
+      console.error("Failed to fetch roles:", error);
+      console.error("Signup error:", error);
+      alert("Signup failed. Please try again.");
+    }
+  };
 
-  } catch (error) {
-    console.error("Signup error:", error);
-  }
-};
   return (
-         <section
-        className="bg-cover bg-center  py-5 px-10 "
-        style={{ backgroundImage: "url('/assets/Verticle.jpg')" }}>
-
-
-            <form
-      onSubmit={handleSubmit}
-      className="max-w-md mx-auto p-10 bg-white border my-10 space-y-4 mt-30"
+    <section
+      className="bg-cover bg-center py-5 px-10"
+      style={{ backgroundImage: "url('/assets/Verticle.jpg')" }}
     >
-      <h2 className="text-2xl font-bold text-center">Create Account</h2>
+      <form
+        onSubmit={handleSubmit}
+        className="max-w-md mx-auto p-10 bg-white border my-10 space-y-4 mt-30"
+      >
+        <h2 className="text-2xl font-bold text-center">Create Account</h2>
 
-      <div>
         <input
           type="text"
           name="name"
@@ -74,9 +109,7 @@ const SignUpForm = () => {
           className="w-full p-2 border rounded"
           required
         />
-      </div>
 
-      <div>
         <input
           type="email"
           name="email"
@@ -86,9 +119,40 @@ const SignUpForm = () => {
           className="w-full p-2 border rounded"
           required
         />
-      </div>
 
-      <div>
+        <input
+          type="text"
+          name="phone"
+          placeholder="Phone Number"
+          value={formData.phone}
+          onChange={handleChange}
+          className="w-full p-2 border rounded"
+          required
+        />
+
+        <select
+          name="role_id"
+          value={formData.role_id}
+          onChange={handleChange}
+          className="w-full p-2 border rounded"
+          required
+        >
+          <option value="">Select Role</option>
+          {roles
+  .filter((role) => role.name.toLowerCase() !== "admin") // 🔐 block admin explicitly
+  .map((role) => (
+    <option key={role.id} value={role.id}>
+      {role.name === "team"
+        ? "Team Member"
+        : role.name === "client"
+        ? "Client"
+        : role.name === "associate partner"
+        ? "Associate Partner"
+        : role.name}
+    </option>
+))}
+        </select>
+
         <input
           type="password"
           name="password"
@@ -98,9 +162,7 @@ const SignUpForm = () => {
           className="w-full p-2 border rounded"
           required
         />
-      </div>
 
-      <div>
         <input
           type="password"
           name="confirmPassword"
@@ -110,26 +172,22 @@ const SignUpForm = () => {
           className="w-full p-2 border rounded"
           required
         />
-      </div>
 
-      <button
-        type="submit"
-       className="w-full rounded-[5px] bg-[#FEC63F] border-l-[15px] border-l-[#C09837] px-[14px] py-[12px] hover:bg-[#C09837] text-black font-medium transition duration-300"
+        <button
+          type="submit"
+          className="w-full rounded-[5px] bg-[#FEC63F] border-l-[15px] border-l-[#C09837] px-[14px] py-[12px] hover:bg-[#C09837] text-black font-medium transition duration-300"
+        >
+          Sign Up
+        </button>
 
->
-      
-        Sign Up
-      </button>
-
-      <div className="text-sm text-center mt-4">
-        Already have an account?{" "}
-        <Link href="/login" className="text-blue-600 hover:underline">
-          Login here
-        </Link>
-      </div>
-    </form>
-        </section>
-    
+        <div className="text-sm text-center mt-4">
+          Already have an account?{" "}
+          <Link href="/login" className="text-blue-600 hover:underline">
+            Login here
+          </Link>
+        </div>
+      </form>
+    </section>
   );
 };
 
