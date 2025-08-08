@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
 
+
 export default function ResetPasswordPage() {
   const { token } = useParams(); // grab token from URL
   const router = useRouter();
@@ -34,7 +35,11 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 mt-10 border rounded bg-white">
+    <section
+      className="bg-cover bg-center py-25 px-10"
+      style={{ backgroundImage: "url('/assets/Verticle.jpg')" }}
+    >
+      <div className="max-w-md mx-auto p-6 mt-10 border rounded bg-white">
       <h2 className="text-xl font-semibold mb-4">Reset Your Password</h2>
 
       {error && <p className="text-red-600 text-sm mb-2">{error}</p>}
@@ -65,7 +70,10 @@ export default function ResetPasswordPage() {
         >
           Reset Password
         </button>
+        
       </form>
     </div>
+    </section>
+    
   );
 }

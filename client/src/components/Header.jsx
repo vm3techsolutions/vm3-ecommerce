@@ -5,9 +5,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Menu, X } from 'lucide-react';
 
+
+
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
+  
 
   const toggleDropdown = (menu) => {
     setActiveDropdown(activeDropdown === menu ? null : menu);
@@ -34,11 +37,13 @@ export default function Header() {
       title: 'Contact Us',
       path: '/',
     },
-    {
-      title: 'Login',
-      path: '/login',
-    },
+    // {
+    //   title: 'Login',
+    //   path: '/login',
+    // },
   ];
+
+  
 
   return (
     <header className="absolute top-0 left-0 w-full bg-black/50 text-white shadow-md z-50">
@@ -91,8 +96,10 @@ export default function Header() {
         </nav>
 
         {/* Contact Info */}
+
         <div className="hidden md:flex flex-col items-start text-right mr-4 md:mr-20">
-          <span className="text-[#FEC63F] text-4xl font-medium"><FaUser/></span>
+
+          <Link href="/login"><span className="text-[#FEC63F] text-4xl font-medium"><FaUser/></span></Link>
           {/* <Link href="tel:+917877554499" className="text-white hover:text-yellow-400 text-sm">
             +91 7877554499
           </Link> */}

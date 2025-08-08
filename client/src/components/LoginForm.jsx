@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import Link from "next/link";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-
 import { jwtDecode } from "jwt-decode";
 
 const LoginForm = () => {
@@ -60,11 +59,15 @@ alert("Login successful!");
 
 
     // ✅ Redirect based on role
-if (role === 1) router.push("/");
-else if (role === 2) router.push("/");
-else if (role === 3) router.push("/");
-else if (role === 4) router.push("/");
-else router.push("/");
+const roleRoutes = {
+  1: '/',
+  2: '/team-dashboard',
+  3: '/',
+  4: '/associate-partner-dashboard',
+};
+
+const redirectPath = roleRoutes[role] || '/';
+router.push(redirectPath);
 
     setLoginData({ email: "", password: "" });
   } catch (error) {

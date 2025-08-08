@@ -12,7 +12,7 @@ const ArrivedPackages = () => {
     { label: "Home", link: "/" },
     { label: "Packages" }
   ];
-  const imageUrl = "/assets/BannerBG.jpg"; // or any banner image you like
+  const imageUrl = "/assets/BannerBG.jpg"; 
 
   //Categories
   const [categories, setCategories] = useState([]);
@@ -20,7 +20,7 @@ const ArrivedPackages = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/auth/categories"); // Update URL if deployed
+        const response = await axios.get("http://localhost:5000/api/auth/categories"); 
         setCategories(response.data);
       } catch (error) {
         console.error("Failed to fetch categories:", error);

@@ -5,7 +5,7 @@ const dotenv = require("dotenv");
 const { connectDB } = require("./Config/db");
 
 const authRoutes = require("./Router/auth-router");
-const planRoutes = require("./Router/plans");
+
 
 dotenv.config();
 const app = express(); // ✅ Declare `app` before using it
@@ -19,7 +19,7 @@ connectDB();
 // ✅ Mount routes after `app` is initialized
 
 app.use("/api/auth", authRoutes);
-app.use("/api/plans", planRoutes);
+
 
 app.listen(PORT, () =>
   console.log(`Server running on port ${PORT}`)
