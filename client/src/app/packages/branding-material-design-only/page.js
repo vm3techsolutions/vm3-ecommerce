@@ -1,10 +1,13 @@
+import React from 'react'
+import BrandingMaterialDesign from './BrandindMaterialDesign'
+
 export const metadata = {
     title : "Branding Material Design Only",
 }
-export default function BrandingMaterialDesignOnly () {
+export default function page () {
     return (
         <>
-        <h1> I am Branding Material Design Only Page</h1>
+        <BrandingMaterialDesign/>
         </>
     )
 }

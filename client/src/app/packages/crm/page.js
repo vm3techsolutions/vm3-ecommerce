@@ -1,10 +1,13 @@
+import React from 'react'
+import CRM from './CRM'
+
 export const metadata = {
     title : "CRM",
 }
-export default function Crm () {
+export default function page () {
     return (
         <>
-        <h1>I am CRM Page </h1>
+        <CRM/>
         </>
     )
 }

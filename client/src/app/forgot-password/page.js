@@ -1,79 +1,63 @@
+
 "use client";
-import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import axios from "axios";
 
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import axios from "axios"; // ✅ use axios directly
 
-export default function ResetPasswordPage() {
-  const { token } = useParams(); // grab token from URL
-  const router = useRouter();
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+const ForgotPassword = () => {
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const router = useRouter();
 
-  const handleReset = async (e) => {
+  const handleForgot = async (e) => {
     e.preventDefault();
-    if (newPassword !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
+    setMessage("");
+    setError("");
 
     try {
-      await axios.post(`http://localhost:5000/api/auth/reset-password/${token}`, {
-        newPassword,
+      // ✅ call your backend endpoint
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/forgot-password`, {
+        email,
       });
 
-      setSuccess("Password reset successful. Redirecting to login...");
-      setTimeout(() => {
-        router.push("/login");
-      }, 2000);
+      setMessage(res.data.message || "Password reset link sent to your email.");
+      setEmail("");
+
+      // Optional: redirect to login after 4 sec
+      setTimeout(() => router.push("/login"), 4000);
     } catch (err) {
-      console.error(err);
-      setError("Reset failed. Token might be expired.");
+      console.error(err.response?.data);
+      setError(err.response?.data?.message || "Failed to send reset link.");
     }
   };
 
   return (
-    <section
-      className="bg-cover bg-center py-25 px-10"
-      style={{ backgroundImage: "url('/assets/Verticle.jpg')" }}
-    >
-      <div className="max-w-md mx-auto p-6 mt-10 border rounded bg-white">
-      <h2 className="text-xl font-semibold mb-4">Reset Your Password</h2>
+    <div className="max-w-md mx-auto p-10 bg-white border my-10 rounded-lg shadow space-y-4">
+      <h2 className="text-2xl font-bold text-center">Forgot Password</h2>
 
-      {error && <p className="text-red-600 text-sm mb-2">{error}</p>}
-      {success && <p className="text-green-600 text-sm mb-2">{success}</p>}
+      {message && <p className="text-green-600 text-sm text-center">{message}</p>}
+      {error && <p className="text-red-600 text-sm text-center">{error}</p>}
 
-      <form onSubmit={handleReset}>
+      <form onSubmit={handleForgot} className="space-y-4">
         <input
-          type="password"
-          className="w-full p-2 border rounded mb-4"
-          placeholder="New Password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
+          type="email"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           required
+          className="w-full p-2 border rounded"
         />
-
-        <input
-          type="password"
-          className="w-full p-2 border rounded mb-4"
-          placeholder="Confirm Password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-        />
-
         <button
           type="submit"
           className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
         >
-          Reset Password
+          Send Reset Link
         </button>
-        
       </form>
     </div>
-    </section>
-    
   );
-}
+};
+
+export default ForgotPassword;

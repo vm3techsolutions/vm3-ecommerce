@@ -1,14 +1,14 @@
-const { getDB } = require("../../Config/db");
+const db = require("../../Config/db");
 
-
-
-exports.packages = async (req, res) => {
+// Get all categories
+const getPackages = async (req, res) => {
   try {
-    const pool = getDB(); 
-    const [rows] = await pool.query("SELECT * FROM packages");
+    const [rows] = await db.query("SELECT * FROM packages");
     res.json(rows);
   } catch (err) {
-    console.error("Error fetching categories:", err);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("DB error:", err);
+    res.status(500).json({ error: "Database error" });
   }
 };
+
+module.exports = { getPackages };

@@ -2,20 +2,24 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import axios from "axios";
 import { useRouter } from "next/navigation";
-import { jwtDecode } from "jwt-decode";
+import { useDispatch } from "react-redux";
+import { loginSuccess } from "@/app/store/authSlice";
+import axiosInstance from "@/app/api/axiosInstance";
+import { jwtDecode } from "jwt-decode"; // 👈 you forgot this
 
 const LoginForm = () => {
+  const router = useRouter();
+  const dispatch = useDispatch();
+
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
-  const router = useRouter();
+  const [serverError, setServerError] = useState("");
 
   const handleChange = (e) => {
-    setLoginData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    setLoginData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setErrors((prev) => ({ ...prev, [e.target.name]: "" }));
+    setServerError("");
   };
 
   const validateForm = () => {
@@ -25,56 +29,50 @@ const LoginForm = () => {
     }
     if (loginData.password.length < 6) {
       newErrors.password = "Password must be at least 6 characters";
+    } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(loginData.password)) {
+      newErrors.password = "Password must include at least one special character";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (!validateForm()) return;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
 
-  try {
-    const response = await axios.post("http://localhost:5000/api/auth/login", loginData);
+    try {
+      const res = await axiosInstance.post("/user/login", {
+        email: loginData.email,
+        password: loginData.password,
+      });
 
-    const { token, user } = response.data;
+      const { token, user } = res.data;
 
-    if (!token) {
-      alert("Login failed: Token not received");
-      return;
+      // Save token + redux state
+      localStorage.setItem("token", token);
+      dispatch(loginSuccess({ user, token }));
+
+      // ✅ Decode token to get role
+      const decoded = jwtDecode(token);
+      const role = Number(decoded.role);
+
+      // ✅ Redirect based on role
+      const roleRoutes = {
+        1: "/",
+        2: "/team-dashboard",
+        3: "/",
+        4: "/associate-partner-dashboard",
+      };
+      const redirectPath = roleRoutes[role] || "/";
+      router.push(redirectPath);
+
+      // Reset form
+      setLoginData({ email: "", password: "" });
+    } catch (error) {
+      console.error("Login error:", error);
+      setServerError(error.response?.data?.message || "Login failed");
     }
-
-    // ✅ Store token and user
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
-
-    // ✅ Decode token
-const decoded = jwtDecode(token);
-const role = Number(decoded.role); // 👈 ensure it's a number
-
-console.log("Decoded token:", decoded);
-console.log("Decoded role:", role);
-
-alert("Login successful!");
-
-
-    // ✅ Redirect based on role
-const roleRoutes = {
-  1: '/',
-  2: '/team-dashboard',
-  3: '/',
-  4: '/associate-partner-dashboard',
-};
-
-const redirectPath = roleRoutes[role] || '/';
-router.push(redirectPath);
-
-    setLoginData({ email: "", password: "" });
-  } catch (error) {
-    console.error("Login error:", error);
-    alert(error.response?.data?.message || "Login failed");
-  }
-};
+  };
 
   return (
     <section
@@ -112,6 +110,8 @@ router.push(redirectPath);
           />
           {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
         </div>
+
+        {serverError && <p className="text-red-500 text-sm">{serverError}</p>}
 
         <button
           type="submit"

@@ -1,25 +1,22 @@
-const bcrypt = require("bcryptjs");
-const { getDB } = require("../Config/db");
-const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const db = require("../../Config/db");
+const sendEmail = require("../../Config/forgotMail");
 
-//Sign-Up
-exports.registerUser = async (req, res) => {
+
+// Signup
+const userSignUp = async (req, res) => {
   const { name, email, phone, password, role_id } = req.body;
 
-  // 🔒 Block admin role from being assigned during registration
   if (role_id == 1) {
     return res.status(403).json({ message: "You are not allowed to register as an administrator" });
   }
-
 
   if (!name || !email || !phone || !password || !role_id) {
     return res.status(400).json({ message: "All fields are required including role" });
   }
 
   try {
-    const db = getDB();
-
     // 1. Check for duplicate user
     const [existing] = await db.query(
       "SELECT * FROM users WHERE email = ? OR phone = ?",
@@ -44,7 +41,7 @@ exports.registerUser = async (req, res) => {
     // 4. Insert role mapping into user_roles table
     await db.query(
       "INSERT INTO user_roles (user_id, role_id, assigned_by, created_at) VALUES (?, ?, ?, NOW())",
-      [userId, role_id, userId] // assuming self-assignment
+      [userId, role_id, userId]
     );
 
     res.status(201).json({ message: "User registered successfully" });
@@ -55,7 +52,8 @@ exports.registerUser = async (req, res) => {
 };
 
 
-exports.loginUser = async (req, res) => {
+
+const userLogin = async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -63,8 +61,6 @@ exports.loginUser = async (req, res) => {
   }
 
   try {
-    const db = getDB();
-
     // Step 1: Get user by email
     const [users] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
     if (users.length === 0) {
@@ -102,7 +98,7 @@ exports.loginUser = async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
-        role_id: role_id, // Include role for frontend use
+        role_id: role_id,
       },
     });
   } catch (error) {
@@ -111,68 +107,80 @@ exports.loginUser = async (req, res) => {
   }
 };
 
+// Forgot Password
 
-//Forgot-Password
-
-exports.forgotPassword = async (req, res) => {
-  const { email } = req.body;
-  const db = getDB();
-
+const forgotPassword = async (req, res) => {
   try {
-    const [rows] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
-    if (rows.length === 0) {
-      return res.status(404).json({ message: "User not found. Please register first." });
+    const { email } = req.body;
+
+    // 1. Check if user exists
+    const [users] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
+    if (!users || users.length === 0) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    const token = crypto.randomBytes(32).toString("hex");
-    const expiry = new Date(Date.now() + 7200000); // 2 hour expiry
+    const user = users[0];
 
-    await db.query(
-      "UPDATE users SET password_reset_token = ?, token_expiry = ? WHERE email = ?",
-      [token, expiry, email]
+    // 2. Generate token (valid 15 min)
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: "15m" });
+
+    // 3. Reset link for frontend
+    const resetLink = `${process.env.FRONT_END_URL}/reset-password/${token}`;
+
+    // 4. Send email
+    await sendEmail(
+      user.email,
+      "Password Reset Request",
+      `Click the link below to reset your password: <br/><br/>
+       <a href="${resetLink}" style="color:blue">${resetLink}</a>`
     );
 
-    // Normally you send an email. For now, return the token in response
-    return res.status(200).json({
-      message: "Password reset link generated",
-      resetLink: `http://localhost:3000/reset-password/${token}`,
-    });
-  } catch (error) {
-    console.error("Forgot Password Error:", error);
-    res.status(500).json({ message: "Server error" });
+    res.json({ message: "Password reset link sent to your email" });
+  } catch (err) {
+    console.error("Forgot Password Error:", err);
+    res.status(500).json({ message: "Something went wrong" });
   }
 };
 
 
-//Reset-Password
+// Reset Password
 
-exports.resetPassword = async (req, res) => {
-  const { token } = req.params;
-  const { newPassword } = req.body;
-
-  if (!newPassword) {
-    return res.status(400).json({ message: "New password is required" });
-  }
-
+const resetPassword = async (req, res) => {
   try {
-    // ✅ Decode the token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userId = decoded.userId; // ✅ This matches the key in your JWT payload
+    const { token } = req.params; // comes from URL /reset-password/:token
+    const { newPassword } = req.body;
 
-    // ✅ Hash the new password
+    if (!newPassword) {
+      return res.status(400).json({ message: "New password is required" });
+    }
+
+    // 1. Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // 2. Check if user still exists
+    const [users] = await db.query("SELECT * FROM users WHERE id = ?", [decoded.id]);
+    if (!users || users.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // 3. Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    const db = getDB();
+    // 4. Update user password in DB
+    await db.query("UPDATE users SET password = ? WHERE id = ?", [hashedPassword, decoded.id]);
 
-    // ✅ Update password in DB
-    await db.query("UPDATE users SET password = ? WHERE id = ?", [
-      hashedPassword,
-      userId,
-    ]);
-
-    return res.status(200).json({ message: "Password reset successful" });
+    res.json({ message: "Password reset successful" });
   } catch (err) {
     console.error("Reset Password Error:", err);
-    return res.status(400).json({ message: "Invalid or expired token" });
+    res.status(400).json({ message: "Invalid or expired token" });
   }
+};
+
+
+
+module.exports = {
+  userSignUp,
+  userLogin,
+  forgotPassword,
+  resetPassword,
 };

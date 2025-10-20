@@ -1,10 +1,12 @@
+import React from 'react'
+import SEO from './SEO'
 export const metadata = {
     title : "SEO",
 }
-export default function Seo () {
+export default function page () {
     return (
         <>
-        <h1>I am SEO Page</h1>
+        <SEO/>
         </>
         )
 }

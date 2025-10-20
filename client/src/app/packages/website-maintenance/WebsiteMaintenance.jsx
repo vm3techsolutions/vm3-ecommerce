@@ -1,322 +1,147 @@
-'use client';
-import PageTitle from '@/components/PageTitle';
-import PrimaryButton from '@/components/PrimaryButton';
-import React, { useState } from 'react';
+"use client";
+import PageTitle from "@/components/PageTitle";
+import PrimaryButton from "@/components/PrimaryButton";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { addToWishlist, removeFromWishlist, fetchWishlist } from "@/app/store/wishlistSlice";
+import { HeartIcon as HeartSolid } from "@heroicons/react/24/solid";
+import { HeartIcon as HeartOutline } from "@heroicons/react/24/outline";
 
-const plans = [
-  {
-    name: "Basic Website Maintenance",
-    description : "Static Website (HTML or Basic WordPress)",
-    pages: "Pages: 1–5",
-    type: "Website Maintenance",
-    features: [
-      "Mobile Responsive",
-      "Website Audit",
-      "1 Update/month",
-      "Monthly Backup",
-      "Estimated Delivery Time: 5 Days"
-    ],
-    price: 4999,
-    basePrice: 4999,
-    addons: [
-      { name: "Domain", price: 1000 },
-      { name: "Hosting", price: 3000 },
-      { name: "SSL", price: 5000 },
-      { name: "Page Builder", price: 5000 },
-    ],
-    recommendedaddons: [
-      { name: "Additional Pages", price: 2000 },
-      { name: "No. of Blogs", price: 1000 },
-      { name: "No. of Case Studies", price: 1500 }
-    ]
-  },
+const WebsiteMaintenance = () => {
+  const [packages, setPackages] = useState([]);
+  const [selectedAddons, setSelectedAddons] = useState({});
+  const dispatch = useDispatch();
+  const userId = useSelector((state) => state.auth?.user?.id);
+  const wishlistItems = useSelector((state) => state.wishlist.items); // should contain full packages from backend
 
-
-  {
-    name: "Business Website Maintenance",
-    description : "Static Website (WordPress)",
-    pages: "Pages: 5–10",
-    type: "Website Maintenance",
-    features: [
-      "Mobile Responsive",
-      "Website Audit",
-      "1 Update/month",
-      "Monthly Backup",
-      "Basic SEO",
-      "Estimated Delivery Time: 3 Days"
-    ],
-    price: 9999,
-    basePrice: 9999,
-    addons: [
-      { name: "Domain", price: 1000 },
-      { name: "Hosting", price: 6500 },
-      { name: "SSL", price: 5000 },
-      { name: "Page Builder", price: 10000 }
-    ],
-      recommendedaddons: [
-      { name: "Additional Pages", price: 2000 },
-      { name: "No. of Blogs", price: 1000 },
-      { name: "No. of Case Studies", price: 1500 }
-    ]
-  },
-
-
-    {
-    name: "Business Professional Website Maintenance",
-    description : "Dynamic Website (React)",
-    pages: "Pages: 15–20",
-    type: "Website Maintenance",
-    features: [
-      "Responsive UI/UX",
-      "Website Audit",
-      "2 Updates/month",
-      "Monthly Backup",
-      "Basic SEO",
-      "Additional Security Features",
-      "SEO Tools Integration",
-      "2 Updates/month",
-      "Enhance Security System",
-      "Optimize Loading Speed",
-      "Monthly Maintenance Activity Report",
-      "Estimated Delivery Time: 3 - 5 Days"
-    ],
-    price: 29999,
-    basePrice: 29999,
-    addons: [
-      { name: "Domain", price: 1000 },
-      { name: "Hosting", price: 15000 },
-      { name: "SSL", price: 5000 },
-    ],
-      recommendedaddons: [
-      { name: "Additional Pages", price: 3000 },
-      { name: "No. of Blogs", price: 1000 },
-      { name: "No. of Case Studies", price: 1500 }
-    ]
-  },
-
-
-  {
-    name: "Basic E-Commerce Maintenance",
-    description : "E-Commerce Website (WordPress)",
-    products: "Products: Up to 25 ",
-    type: "Website Maintenance",
-    features: [
-    "Mobile Responsive",
-    "Website Audit",
-    "1 Update/month",
-    "Monthly Backup",
-    "Basic SEO",
-    "Enhance Security System",
-    "Yearly 10 Products Listing",
-    "Estimated Delivery Time: 3 -5 Days"
-    ],
-    price: 19999,
-    basePrice: 19999,
-    addons: [
-      { name: "Domain", price: 1000 },
-      { name: "Hosting", price: 15000 },
-      { name: "SSL", price: 5000 },
-      { name: "Page Builder", price: 5000 }
-    ],
-    recommendedaddons: [
-      { name: "Additional Products", price: 200 },
-      { name: "No. of Blogs", price: 1000 },
-      { name: "No. of Case Studies", price: 1500 }
-    ]
-  },
-
-
-  {
-    name: "E-Commerce Professional Maintenance",
-    description : "E-Commerce Website (React)",
-    products: "Products: Up to 50   ",
-    type: "Website Maintenance",
-    features: [
-      "Responsive UI/UX",
-      "Website Audit",
-      "2 Updates/month",
-      "Monthly Backup",
-      "Basic SEO",
-      "Additional Security Features",
-      "SEO Tools Integration",
-      "Enhance Security System",
-      "Optimize Loading Speed",
-      "Payment Gateway Integration",
-      "Additional Security Features",
-      "Optimize Loading Speed",
-      "Yearly 20 Products Listing",
-      "Monthly Maintenance Activity Report",
-      "Estimated Delivery Time: 3 - 5 Days"
-    ],
-    price: 29999,
-    basePrice: 29999,
-    addons: [
-      { name: "Domain", price: 1000 },
-      { name: "Hosting", price: 15000 },
-      { name: "SSL", price: 5000 },
-
-    ],
-    recommendedaddons: [
-      { name: "Additional Products", price: 200 },
-      { name: "No. of Blogs", price: 1000 },
-      { name: "No. of Case Studies", price: 1500 }
-    ]
-  }
-];
-
-export default function WebsiteMaintenance() {
-  const title = "Website Development Packages";
+  const title = "Website Maintenance Packages";
   const breadcrumbs = [
     { label: "Home", link: "/" },
-    { label: "Website Development Packages" }
+    { label: "Website Maintenance Packages" },
   ];
-  const imageUrl = "/assets/BannerBG.jpg"; // or any banner image you like
+  const imageUrl = "/assets/BannerBG.jpg";
 
-const [selectedAddons, setSelectedAddons] = useState({});
-const [recommendedQuantities, setRecommendedQuantities] = useState({});
+  // Fetch Packages
+  useEffect(() => {
+    const fetchPackages = async () => {
+      try {
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/packages/category/2`
+        );
+        setPackages(res.data);
+      } catch (err) {
+        console.error("Failed to fetch packages:", err);
+      }
+    };
+    fetchPackages();
+  }, []);
 
-const handleRecommendedQuantityChange = (planIndex, addonIndex, quantity) => {
-  setRecommendedQuantities(prev => ({
-    ...prev,
-    [planIndex]: {
-      ...prev[planIndex],
-      [addonIndex]: parseInt(quantity) || 0,
-    },
-  }));
-};
+  // Fetch wishlist on load
+  useEffect(() => {
+    if (userId) {
+      dispatch(fetchWishlist(userId)); // backend should return full packages joined with wishlist
+    }
+  }, [userId, dispatch]);
 
-  const toggleAddon = (planIndex, addonIndex) => {
-    setSelectedAddons(prev => {
-      const selected = prev[planIndex] || [];
-      if (selected.includes(addonIndex)) {
-        return { ...prev, [planIndex]: selected.filter(i => i !== addonIndex) };
+  // Toggle wishlist
+  const handleWishlist = (pkg) => {
+    if (!userId) return alert("Please login to use wishlist.");
+    if (wishlistItems.some((item) => item.id === pkg.id)) {
+      dispatch(removeFromWishlist({ userId, packageId: pkg.id }));
+    } else {
+      dispatch(addToWishlist({ userId, packageId: pkg.id }));
+    }
+  };
+
+  // Toggle Add-ons
+  const handleAddonChange = (pkgId, addon) => {
+    setSelectedAddons((prev) => {
+      const current = prev[pkgId] || [];
+      if (current.includes(addon.name)) {
+        return { ...prev, [pkgId]: current.filter((a) => a !== addon.name) };
       } else {
-        return { ...prev, [planIndex]: [...selected, addonIndex] };
+        return { ...prev, [pkgId]: [...current, addon.name] };
       }
     });
   };
 
-  // const calculateTotal = (planIndex) => {
-  //   const plan = plans[planIndex];
-  //   const addons = selectedAddons[planIndex] || [];
-  //   const addonTotal = addons.reduce((sum, i) => sum + plan.addons[i].price, 0);
-  //  return (plan.basePrice || 0) + addonTotal;
-  // };
-const calculateTotal = (planIndex) => {
-  const plan = plans[planIndex];
-  const addons = selectedAddons[planIndex] || [];
-  const recommended = recommendedQuantities[planIndex] || {};
+  // Calculate total
+  const calculateTotalPrice = (pkg) => {
+    let total = parseInt(pkg.price);
+    const addonsChosen = selectedAddons[pkg.id] || [];
+    pkg.details.recommended_addons.forEach((addon) => {
+      if (addonsChosen.includes(addon.name)) total += addon.price;
+    });
+    return total;
+  };
 
-  const addonTotal = addons.reduce((sum, i) => sum + plan.addons[i].price, 0);
-
-  const recommendedTotal = plan.recommendedaddons?.reduce((sum, addon, i) => {
-    const quantity = recommended[i] || 0;
-    return sum + (addon.price * quantity);
-  }, 0) || 0;
-
-  return (plan.basePrice || 0) + addonTotal + recommendedTotal;
-};
+  if (!packages.length) {
+    return <p className="text-center py-10 text-lg">Loading Packages...</p>;
+  }
 
   return (
     <>
-    <PageTitle title={title} breadcrumbs={breadcrumbs} imageUrl={imageUrl} />
-  
-    <div className="relative w-full py-10 px-22 text-white">
-    {/* Content */}
-      <div className="relative z-10">
-        <h1 className="text-4xl font-extrabold text-center mb-10 text-black">
-          Website Maintenance Packages
-        </h1>
-
-        <div className="grid grid-cols-3 gap-10">
-          {plans.map((plan, planIndex) => (
+      <PageTitle title={title} breadcrumbs={breadcrumbs} imageUrl={imageUrl} />
+      <div className="bg-gray-50 py-20">
+        <h1 className="text-4xl font-bold text-center mb-10">{title}</h1>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4 md:px-10">
+          {packages.map((pkg) => (
             <div
-              key={planIndex}
-              className="text-black rounded-2xl p-6 w-full md:w-[450px] border transition hover:shadow-xl hover:scale-[1.02] duration-200 relative"
-              style={{ borderColor: '#EDBA3C' }}
+              key={pkg.id}
+              className="relative bg-white shadow-lg rounded-2xl p-6 border border-gray-200 hover:shadow-2xl transition"
             >
-              <h2 className="text-xl font-bold mb-1 text-[#EDBA3C]">{plan.name}</h2>
-              <p className="text-base text-gray-900 mb-2">{plan.description}</p>
-              <p className="text-base mb-2"><strong>{plan.pages}</strong></p>
-               <p className="text-base mb-2"><strong>{plan.products}</strong></p>
-              <ul className="mb-4 space-y-1 text-base">
-                {plan.features.map((feature, i) => (
-                  <li key={i}>✔ {feature}</li>
+              {/* Wishlist Heart */}
+              <button
+                onClick={() => handleWishlist(pkg)}
+                className="absolute top-4 right-4"
+              >
+                {wishlistItems.some((item) => item.id === pkg.id) ? (
+                  <HeartSolid className="h-7 w-7 text-red-500" />
+                ) : (
+                  <HeartOutline className="h-7 w-7 text-gray-400 hover:text-red-500" />
+                )}
+              </button>
+
+              <h2 className="text-2xl font-semibold mb-2 text-[#EDBA3C]">
+                {pkg.name}
+              </h2>
+              <p className="text-gray-600 mb-4">{pkg.description}</p>
+
+              <h3 className="font-semibold text-lg mb-2">Features:</h3>
+              <ul className="mb-4 space-y-1 text-sm">
+                {pkg.details.features.map((f, i) => (
+                  <li key={i}>✔ {f}</li>
                 ))}
               </ul>
 
-              
-
-<div className="space-y-4 text-sm text-gray-900">
-  {/* Addons - Checkbox */}
-  {(plan.addons || []).length > 0 && (
-    <div>
-      <p className="font-medium text-lg mb-2 mt-4">Recommended Add-ons:</p>
-      <ul className="space-y-1">
-        {plan.addons.map((addon, addonIndex) => {
-          const checkboxId = `web-addon-${planIndex}-${addonIndex}`;
-          return (
-            <li key={addonIndex} className="flex items-center">
-              <input
-                type="checkbox"
-                id={checkboxId}
-                className="mr-2"
-                checked={selectedAddons[planIndex]?.includes(addonIndex) || false}
-                onChange={() => toggleAddon(planIndex, addonIndex)}
-              />
-              <label htmlFor={checkboxId}>
-                {addon.name} (+₹{addon.price.toLocaleString()})
-              </label>
-            </li>
-          );
-        })}
-      </ul>
-    </div>
-  )}
-
-  {/* Recommended Addons - Quantity Input */}
-  {(plan.recommendedaddons || []).length > 0 && (
-    <div className='pb-4'>
-      <p className="font-medium text-lg mt-4 mb-2">Select No of Content Items: </p>
-      <ul className="space-y-2">
-        {plan.recommendedaddons.map((addon, addonIndex) => {
-          const inputId = `recommended-addon-${planIndex}-${addonIndex}`;
-          return (
-            <li key={addonIndex} className="flex items-center gap-3">
-              <label htmlFor={inputId}>
-                {addon.name} (+₹{addon.price.toLocaleString()})
-              </label>
-              <input
-                type="number"
-                id={inputId}
-                min="0"
-                value={recommendedQuantities[planIndex]?.[addonIndex] || 0}
-                onChange={(e) =>
-                  handleRecommendedQuantityChange(planIndex, addonIndex, e.target.value)
-                }
-                className="ml-2 border border-gray-300 px-3 py-1 rounded w-20 focus:ring-2 focus:ring-[#EDBA3C] focus:outline-none"
-              />
-            </li>
-          );
-        })}
-      </ul>
-      
-    </div>
-    
-  )}
-  <div className="text-xl font-semibold mb-2 text-[#EDBA3C] pb-8">
-                {plan.basePrice > 0 ? `Total Price:- ₹${calculateTotal(planIndex).toLocaleString()}` : "Custom Quote"}
+              <h3 className="font-semibold text-lg mb-2">Recommended Add-ons:</h3>
+              <div className="space-y-2 mb-4">
+                {pkg.details.recommended_addons.map((addon, i) => (
+                  <label key={i} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedAddons[pkg.id]?.includes(addon.name) || false}
+                      onChange={() => handleAddonChange(pkg.id, addon)}
+                    />
+                    <span>
+                      {addon.name} (+₹{addon.price.toLocaleString()})
+                    </span>
+                  </label>
+                ))}
               </div>
-  <PrimaryButton  href="/">Add to Cart</PrimaryButton>
-</div>
-                
+
+              <p className="text-xl font-semibold mb-2 text-[#EDBA3C] mt-10 pb-8">
+                Total Price: ₹{calculateTotalPrice(pkg).toLocaleString()}
+              </p>
+
+              <PrimaryButton href="/">Add to Cart</PrimaryButton>
             </div>
-            
           ))}
-          
         </div>
       </div>
-    </div>
     </>
   );
-}
+};
+
+export default WebsiteMaintenance;

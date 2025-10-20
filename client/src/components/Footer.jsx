@@ -27,7 +27,6 @@ export default function Footer() {
               { label: "Website Maintenance", link: "/packages/website-maintenance" },
               { label: "Social Media Marketing", link: "/packages/social-media-marketing" },
               { label: "Digital Marketing Ads", link: "/packages/digital-marketing-ads" },
-              { label: "Digital Marketing Ads", link: "/packages/" },
               { label: "SEO", link: "/packages/seo" }
             ].map((item) => (
                 <li key={item.link} className="flex items-center space-x-2">
@@ -79,7 +78,7 @@ export default function Footer() {
               <FaEnvelope className="text-[#FEC63F]" />
               <Link href="mailto:info@vm3techsolution.com" className="text-sm text-gray-300">
                 info@vm3techsolution.com
-                     info@vm3techsolution.com
+                
               </Link>
             </div>
           </div>
